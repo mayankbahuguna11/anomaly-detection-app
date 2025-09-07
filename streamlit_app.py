@@ -53,9 +53,9 @@ for ticker in final_data.columns:
         np.where((df['is_anomaly']) & (df['Close'].pct_change() > 0.10), 'SELL', 'HOLD')
     )
 
-    # For plot → merge BUY/SELL into one category
+    # For plot: merge BUY/SELL into one category
     df['Signal'] = df['RawSignal'].replace({'BUY':'Buy/Sell', 'SELL':'Buy/Sell'})
-    # For table → keep original BUY/SELL
+    # For table: keep original BUY/SELL
     df['TableSignal'] = df['RawSignal']
 
     results[ticker] = df
@@ -71,7 +71,7 @@ ticker = st.sidebar.selectbox("Select a cryptocurrency:", list(final_data.column
 st.sidebar.header("Filter Signals")
 signal_filter = st.sidebar.radio(
     "Choose a signal type:",
-    ("Anomalies", "Buy/Sell", "HOLD")  # renamed from "All" to "Anomalies"
+    ("Anomalies", "Buy/Sell", "HOLD")
 )
 
 # Plot Graph
@@ -84,14 +84,14 @@ fig.add_trace(go.Scatter(
     name=f"{ticker} Price", line=dict(color='blue')
 ))
 
-# Anomaly markers (always visible)
+# Anomaly markers
 fig.add_trace(go.Scatter(
     x=df[df['is_anomaly']].index, y=df[df['is_anomaly']]['Close'],
     mode='markers', name="Anomalies",
     marker=dict(color='red', size=8, symbol='x')
 ))
 
-# BUY/SELL markers (merged visually)
+# BUY/SELL markers
 if signal_filter == "Buy/Sell":
     buy_signals = df[df['RawSignal'] == 'BUY']
     sell_signals = df[df['RawSignal'] == 'SELL']
@@ -109,11 +109,11 @@ if signal_filter == "Buy/Sell":
 
 # HOLD markers
 if signal_filter == "HOLD":
-    hold_signals = df[df['RawSignal'] == 'HOLD']
+    hold_signals = df[df['RawSignal'] == 'HOLD'].iloc[::10]
     fig.add_trace(go.Scatter(
         x=hold_signals.index, y=hold_signals['Close'],
         mode='markers', name="HOLD",
-        marker=dict(color="orange", size=10, symbol="circle")
+        marker=dict(color="orange", size=8, symbol="circle")
     ))
 
 fig.update_layout(
@@ -127,7 +127,7 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# Show Table only if filter is not 'Anomalies'
+# Show Table for Buy/Sell and Hold
 if signal_filter != "Anomalies":
     st.subheader(f"{ticker} Trading Signals")
     st.dataframe(
